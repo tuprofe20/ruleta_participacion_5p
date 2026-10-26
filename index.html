@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es" class="w-full h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruleta de Participación Activa - Matemáticas</title>
+    
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { 
+            margin: 0; 
+            background-color: #01050b; /* Deep Dark Blue/Black */
+            font-family: 'Inter', sans-serif; 
+            color: #ffffff;
+            overflow: hidden; /* Evitar scroll en pizarra digital */
+        }
+
+        /* Glassmorphism Classes */
+        .glass-panel {
+            background: rgba(6, 20, 42, 0.65);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(0, 242, 254, 0.2);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 242, 254, 0.05);
+        }
+
+        /* 3D Wheel Wrapper */
+        .wheel-3d-wrapper {
+            position: relative;
+            border-radius: 50%;
+            /* Borde grueso simulando el chasis plástico/metálico */
+            border: 14px solid #0f172a; 
+            /* Borde inferior más grueso para simular profundidad 3D */
+            border-bottom: 28px solid #020617; 
+            box-shadow: 
+                0 35px 60px rgba(0, 0, 0, 0.95), /* Sombra proyectada pesada */
+                0 0 60px rgba(0, 242, 254, 0.25), /* Resplandor de base neón */
+                inset 0 12px 24px rgba(255, 255, 255, 0.15), /* Brillo interior superior */
+                inset 0 -12px 24px rgba(0, 0, 0, 0.9); /* Sombra interior inferior */
+            background-color: #01050b;
+        }
+
+        /* Puntero Spring */
+        .pointer-spring {
+            transform-origin: 50% 0%;
+            transition: transform 0.05s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 40;
+        }
+        .pointer-tick {
+            transform: rotate(-35deg) scale(1.15);
+        }
+
+        /* Custom Scrollbar para la lista de alumnos */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(2, 6, 23, 0.5); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 242, 254, 0.5); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 242, 254, 0.9); }
+        
+        /* Modal Animaciones */
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-active {
+            animation: popIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Ambient Glow en el Background */
+        .ambient-glow {
+            position: absolute;
+            border-radius: 50%;
+            mix-blend-screen: screen;
+            filter: blur(120px);
+            opacity: 0.18;
+            pointer-events: none;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="w-full h-full flex flex-col relative selection:bg-cyan-500 selection:text-white">
+
+    <!-- Efectos Ambientales de Fondo -->
+    <div class="ambient-glow bg-[#bf00ff] w-[45vw] h-[45vw] top-[-10%] left-[-5%]"></div>
+    <div class="ambient-glow bg-[#00f2fe] w-[55vw] h-[55vw] bottom-[-15%] right-[-10%]"></div>
+
+    <!-- Header Descriptivo -->
+    <header class="relative z-10 w-full px-8 py-5 flex justify-between items-center shrink-0 border-b border-white/5 bg-black/20">
+        <div>
+            <div class="flex items-center gap-3 mb-1.5">
+                <span class="text-cyan-400 font-bold tracking-[0.2em] uppercase text-[10px] sm:text-xs drop-shadow-[0_0_8px_#00f2fe] border border-cyan-500/40 px-2 py-0.5 rounded-md bg-cyan-900/30">
+                    <i class="fa-solid fa-school mr-1.5"></i>Colegio Lobachevsky
+                </span>
+                <span class="text-pink-400 font-bold tracking-[0.2em] uppercase text-[10px] sm:text-xs drop-shadow-[0_0_8px_#fe0979] border border-pink-500/40 px-2 py-0.5 rounded-md bg-pink-900/30">
+                    <i class="fa-solid fa-users-rectangle mr-1.5"></i>Quinto Grado de Primaria
+                </span>
+                <span class="text-yellow-400 font-bold tracking-[0.2em] uppercase text-[10px] sm:text-xs drop-shadow-[0_0_8px_#facc15] border border-yellow-500/40 px-2 py-0.5 rounded-md bg-yellow-900/30 hidden md:inline-block">
+                    <i class="fa-solid fa-chalkboard-user mr-1.5"></i>Prof. Danny Torres
+                </span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 uppercase tracking-tighter drop-shadow-lg flex items-center gap-3">
+                Ruleta de Participación Activa <span class="text-slate-300 font-light text-2xl hidden lg:inline-block">|</span> <span class="text-white font-bold text-xl sm:text-2xl md:text-3xl"><i class="fa-solid fa-square-root-variable text-cyan-400 mr-2"></i>Matemáticas</span>
+            </h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <!-- Audio Toggle -->
+            <button id="audioToggleBtn" class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-700 hover:border-cyan-400 text-cyan-400 transition-colors shadow-lg flex items-center justify-center text-xl">
+                <i id="audioIcon" class="fa-solid fa-volume-high"></i>
+            </button>
+            <span class="bg-cyan-950 border-2 border-cyan-500 text-cyan-300 px-5 py-2.5 rounded-2xl font-black text-base shadow-[0_0_20px_rgba(0,242,254,0.4)] flex items-center gap-2">
+                <i class="fa-solid fa-user-graduate"></i><span id="activeCount">21/21</span>
+            </span>
+        </div>
+    </header>
+
+    <!-- Área de Trabajo Horizontal 16:9 -->
+    <main class="relative z-10 flex-1 flex w-full max-w-[1920px] mx-auto px-6 py-6 gap-8 min-h-0">
+        
+        <!-- COLUMNA IZQUIERDA: Ruleta 3D y Controles (7/12) -->
+        <section class="w-full lg:w-7/12 h-full flex flex-col items-center justify-center glass-panel rounded-[2.5rem] p-6 relative">
+            
+            <!-- Contenedor Principal de la Ruleta -->
+            <div class="relative flex items-center justify-center flex-1 w-full max-h-full">
+                
+                <!-- Puntero -->
+                <div id="wheelPointer" class="absolute -top-6 z-50 pointer-spring flex flex-col items-center filter drop-shadow-[0_12px_12px_rgba(0,0,0,0.9)]">
+                    <div class="w-14 h-20 bg-gradient-to-b from-[#facc15] via-[#ff9800] to-[#ff5e00] border-t-[8px] border-white shadow-[0_0_25px_#facc15]" style="clip-path: polygon(50% 100%, 0 0, 100% 0);"></div>
+                    <div class="w-6 h-6 bg-white rounded-full -mt-4 shadow-[0_0_20px_#fff]"></div>
+                </div>
+
+                <!-- Chasis 3D y Canvas -->
+                <div class="wheel-3d-wrapper aspect-square max-w-[75vh] w-full flex items-center justify-center relative overflow-hidden">
+                    <canvas id="wheelCanvas" width="900" height="900" class="w-full h-full relative z-10 transform scale-[1.015]"></canvas>
+                    
+                    <!-- Nucleo de la ruleta -->
+                    <div class="absolute z-20 w-[14%] h-[14%] rounded-full bg-gradient-to-br from-slate-800 to-black border-[5px] border-slate-600 shadow-[0_15px_30px_rgba(0,0,0,0.9),inset_0_5px_15px_rgba(255,255,255,0.25)] flex items-center justify-center pointer-events-none">
+                        <div class="w-1/2 h-1/2 rounded-full bg-cyan-400 shadow-[0_0_25px_#00f2fe,inset_0_0_12px_white]"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Botón de Girar -->
+            <div class="mt-6 w-full max-w-[65%] shrink-0 pb-2">
+                <button id="spinBtn" class="group relative w-full py-5 sm:py-6 px-8 rounded-full bg-gradient-to-b from-[#39ff14] to-green-600 border-b-[8px] border-green-800 text-black font-black text-2xl sm:text-4xl shadow-[0_12px_0_0_rgba(0,0,0,0.7),0_0_50px_rgba(57,255,20,0.5)] active:shadow-none active:translate-y-3 active:border-b-0 transition-all uppercase tracking-widest overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span class="absolute inset-0 bg-white opacity-0 group-hover:opacity-25 transition-opacity"></span>
+                    <div class="flex items-center justify-center gap-4 relative z-10">
+                        <i class="fa-solid fa-play group-hover:scale-125 transition-transform duration-300"></i>
+                        <span id="spinBtnText">GIRAR RULETA</span>
+                    </div>
+                </button>
+            </div>
+        </section>
+
+        <!-- COLUMNA DERECHA: Lista de Alumnos (5/12) -->
+        <section class="w-full lg:w-5/12 h-full glass-panel rounded-[2.5rem] p-8 flex flex-col">
+            
+            <div class="flex flex-col xl:flex-row justify-between xl:items-end mb-6 border-b border-cyan-500/30 pb-4 shrink-0 gap-4">
+                <div>
+                    <h2 class="text-2xl font-black text-white tracking-widest uppercase flex items-center gap-3">
+                        <i class="fa-solid fa-list-check text-cyan-400"></i> Registro de Aula
+                    </h2>
+                    <p class="text-sm text-cyan-300/70 font-bold uppercase tracking-widest mt-1.5">Haz clic para excluir/incluir al alumno</p>
+                </div>
+                <button id="resetBtn" class="text-sm font-bold text-slate-300 hover:text-white transition-colors bg-white/5 hover:bg-white/15 px-5 py-2.5 rounded-xl border border-white/10 flex items-center justify-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-rotate-left"></i> Restablecer
+                </button>
+            </div>
+
+            <!-- Grid de Alumnos (Scrollable) -->
+            <div id="studentList" class="flex-1 overflow-y-auto pr-3 grid grid-cols-1 md:grid-cols-2 gap-3 content-start">
+                <!-- Generado por JS -->
+            </div>
+            
+        </section>
+
+    </main>
+
+    <!-- Modal de Victoria y Fondo Dinámico Matemático -->
+    <div id="winnerModal" class="fixed inset-0 z-50 flex items-center justify-center hidden pointer-events-none">
+        
+        <!-- Overlay oscuro -->
+        <div id="modalOverlay" class="absolute inset-0 bg-black/85 backdrop-blur-lg opacity-0 transition-opacity duration-500"></div>
+        
+        <!-- Canvas Fondo Matemático Dinámico -->
+        <canvas id="mathCanvas" class="absolute inset-0 w-full h-full z-10 pointer-events-none opacity-0 transition-opacity duration-500"></canvas>
+
+        <!-- Modal Card -->
+        <div id="modalCard" class="relative z-20 bg-gradient-to-b from-[#06142a] to-[#01050b] p-12 sm:p-20 rounded-[4rem] border-[6px] border-cyan-400 shadow-[0_0_200px_rgba(0,242,254,0.6),inset_0_0_80px_rgba(0,242,254,0.25)] w-full max-w-[90%] sm:max-w-5xl flex flex-col items-center text-center opacity-0 transform scale-90 pointer-events-auto">
+            
+            <div class="inline-flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-[#01050b] border-[6px] border-[#facc15] shadow-[0_0_60px_#facc15] mb-8 animate-bounce">
+                <i class="fa-solid fa-star text-5xl sm:text-6xl text-[#facc15]"></i>
+            </div>
+
+            <h3 class="text-2xl sm:text-3xl font-black text-slate-300 tracking-[0.4em] uppercase mb-6">
+                ¡PARTICIPANTE ELEGIDO!
+            </h3>
+            
+            <!-- Contenedor del nombre gigante -->
+            <div class="bg-black/70 border border-cyan-500/40 p-10 sm:p-16 rounded-[3rem] shadow-inner mb-12 w-full overflow-hidden relative">
+                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
+                <h2 id="winnerText" class="text-5xl sm:text-7xl md:text-[6.5rem] font-black text-white uppercase tracking-tighter leading-none" style="text-shadow: 0 0 40px rgba(0,242,254,0.9), 0 0 80px rgba(0,242,254,0.5);">
+                    NOMBRE APELLIDO
+                </h2>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-8 w-full justify-center">
+                <button id="markDoneBtn" class="flex-1 max-w-[24rem] bg-gradient-to-b from-[#39ff14] to-green-600 text-black border-b-[8px] border-green-800 font-black text-2xl py-6 px-8 rounded-[2rem] shadow-[0_10px_0_0_rgba(0,0,0,0.7),0_0_40px_rgba(57,255,20,0.4)] active:shadow-none active:translate-y-3 active:border-b-0 transition-all uppercase tracking-widest hover:brightness-110">
+                    <i class="fa-solid fa-check-double mr-3"></i> Ya Participó
+                </button>
+                <button id="spinAgainBtn" class="flex-1 max-w-[24rem] bg-gradient-to-b from-slate-600 to-slate-800 text-white border-b-[8px] border-slate-900 font-black text-2xl py-6 px-8 rounded-[2rem] shadow-[0_10px_0_0_rgba(0,0,0,0.7)] active:shadow-none active:translate-y-3 active:border-b-0 transition-all uppercase tracking-widest hover:brightness-125 border-x border-t border-slate-500">
+                    <i class="fa-solid fa-rotate-right mr-3 text-cyan-400"></i> Girar de nuevo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de Lógica Principal -->
+    <script>
+        // --- 1. CONFIGURACIÓN Y DATOS ---
+        const NAMES = [
+            "Fabio Aguilar", "Leonel Anaya", "Alice Barrenechea", "Kaphael Cutte", 
+            "Daniela Gallo", "Luciana Junco", "Alexandra Lujan", "Gael Maldonado", 
+            "Kristen Mertz", "Loam Melendez", "André Mera", "Benjamín Mogrovejo", 
+            "Isaac Puma", "Catalina Ramírez", "Valentina Ramírez", "Joaquin Ramos", 
+            "Fabrizio Rivera", "Victoria Robles", "Claire Solis", "Lia Soto", "Briana Vera"
+        ];
+
+        // Paleta Neón extendida para los sectores
+        const NEON_PALETTE = [
+            '#00f2fe', '#fe0979', '#39ff14', '#facc15', '#bf00ff', '#ff5e00',
+            '#00bcd4', '#e91e63', '#4caf50', '#ffeb3b', '#9c27b0', '#ff9800',
+            '#06b6d4', '#f43f5e', '#10b981', '#fbbf24', '#d946ef', '#f97316',
+            '#00f2fe', '#fe0979', '#39ff14'
+        ];
+
+        let students = NAMES.map((name, index) => ({
+            id: index + 1,
+            name: name,
+            active: true,
+            color: NEON_PALETTE[index % NEON_PALETTE.length]
+        }));
+
+        let isSpinning = false;
+        let currentRotation = 0; // Radianes
+        let lastTickSector = -1;
+        let selectedStudent = null;
+        let audioEnabled = true;
+
+        // Elementos DOM principales
+        const wheelCanvas = document.getElementById('wheelCanvas');
+        const ctx = wheelCanvas.getContext('2d');
+        const studentListEl = document.getElementById('studentList');
+        const activeCountEl = document.getElementById('activeCount');
+        const spinBtn = document.getElementById('spinBtn');
+        const spinBtnText = document.getElementById('spinBtnText');
+        const pointerEl = document.getElementById('wheelPointer');
+
+        // Toggle Audio UI
+        const audioBtn = document.getElementById('audioToggleBtn');
+        const audioIcon = document.getElementById('audioIcon');
+        audioBtn.addEventListener('click', () => {
+            audioEnabled = !audioEnabled;
+            if(audioEnabled) {
+                audioIcon.className = 'fa-solid fa-volume-high';
+                audioBtn.classList.add('text-cyan-400');
+                audioBtn.classList.remove('text-slate-500');
+            } else {
+                audioIcon.className = 'fa-solid fa-volume-xmark';
+                audioBtn.classList.remove('text-cyan-400');
+                audioBtn.classList.add('text-slate-500');
+            }
+        });
+
+        // --- 2. MOTOR DE AUDIO WEB (Stereo Panner) ---
+        const AudioEngine = {
+            ctx: null,
+            tickPanValue: -0.8,
+            init() {
+                if (!this.ctx && audioEnabled) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+            },
+            playTick() {
+                if (!this.ctx || !audioEnabled) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    
+                    // Configurar Stereo Panner (Alternar Izquierda/Derecha dramáticamente)
+                    let panner = null;
+                    if (this.ctx.createStereoPanner) {
+                        panner = this.ctx.createStereoPanner();
+                        panner.pan.value = this.tickPanValue;
+                        this.tickPanValue = this.tickPanValue === -0.8 ? 0.8 : -0.8;
+                    }
+
+                    osc.type = 'square'; // Sonido mecánico de clic
+                    osc.frequency.setValueAtTime(500, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.05);
+                    
+                    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+                    
+                    if (panner) {
+                        osc.connect(panner);
+                        panner.connect(gain);
+                    } else {
+                        osc.connect(gain);
+                    }
+                    gain.connect(this.ctx.destination);
+                    
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.05);
+                } catch(e) { console.warn('Audio API issue:', e); }
+            },
+            playWin() {
+                if (!this.ctx || !audioEnabled) return;
+                try {
+                    // Acorde Rico de Victoria (Triunfal)
+                    const frequencies = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                    frequencies.forEach((freq, idx) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        
+                        // Stereo esparcido para el acorde
+                        let panner = null;
+                        if (this.ctx.createStereoPanner) {
+                            panner = this.ctx.createStereoPanner();
+                            panner.pan.value = -0.6 + (idx * 0.4); // Repartido de L a R
+                        }
+
+                        osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+                        osc.frequency.value = freq;
+                        
+                        // Envolvente de volumen (ataque rápido, sustain, release largo)
+                        gain.gain.setValueAtTime(0, this.ctx.currentTime);
+                        gain.gain.linearRampToValueAtTime(0.2, this.ctx.currentTime + 0.1);
+                        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 4.0);
+                        
+                        if (panner) {
+                            osc.connect(panner);
+                            panner.connect(gain);
+                        } else {
+                            osc.connect(gain);
+                        }
+                        gain.connect(this.ctx.destination);
+                        
+                        // Ligero arpegio
+                        osc.start(this.ctx.currentTime + (idx * 0.1));
+                        osc.stop(this.ctx.currentTime + 4.5);
+                    });
+                } catch(e) {}
+            }
+        };
+
+        // --- 3. GESTIÓN DE LA LISTA Y UI ---
+        function getActiveStudents() {
+            return students.filter(s => s.active);
+        }
+
+        function renderList() {
+            studentListEl.innerHTML = '';
+            let activeCount = 0;
+
+            students.forEach(student => {
+                if(student.active) activeCount++;
+                
+                const btn = document.createElement('button');
+                btn.className = `flex justify-between items-center px-4 py-3 rounded-2xl border transition-all select-none group w-full text-left
+                                ${student.active ? 'bg-[#010812]/95 hover:bg-[#06142a] shadow-lg border-slate-700 hover:border-cyan-400' : 'bg-black/50 opacity-40 grayscale border-transparent hover:opacity-70'}`;
+                
+                // Color indicator bar
+                const colorIndicator = student.active ? student.color : '#555';
+
+                btn.innerHTML = `
+                    <div class="flex items-center gap-4 overflow-hidden">
+                        <div class="w-2 h-7 rounded-full shrink-0 shadow-[0_0_8px_currentColor]" style="background-color: ${colorIndicator}; color: ${colorIndicator}"></div>
+                        <span class="font-bold text-sm md:text-base lg:text-lg truncate ${student.active ? 'text-slate-100 group-hover:text-white' : 'text-gray-500 line-through'}">
+                            ${student.id}. ${student.name}
+                        </span>
+                    </div>
+                    <i class="fa-solid ${student.active ? 'fa-check text-green-400' : 'fa-xmark text-red-500'} text-sm shrink-0 opacity-70 group-hover:opacity-100"></i>
+                `;
+
+                btn.addEventListener('click', () => {
+                    if (isSpinning) return;
+                    student.active = !student.active;
+                    renderList();
+                    drawWheel();
+                });
+
+                studentListEl.appendChild(btn);
+            });
+
+            activeCountEl.textContent = `${activeCount}/${students.length}`;
+            
+            if (activeCount === 0) {
+                spinBtn.disabled = true;
+                spinBtnText.textContent = "SIN ALUMNOS ACTIVOS";
+            } else {
+                spinBtn.disabled = false;
+                spinBtnText.textContent = "GIRAR RULETA";
+            }
+        }
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if(isSpinning) return;
+            students.forEach(s => s.active = true);
+            renderList();
+            drawWheel();
+        });
+
+        // --- 4. RENDERIZADO DE RULETA 3D ---
+        function drawWheel() {
+            const activeSet = getActiveStudents();
+            const cx = wheelCanvas.width / 2;
+            const cy = wheelCanvas.height / 2;
+            const radius = cx - 6; 
+            
+            ctx.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height);
+            
+            if (activeSet.length === 0) {
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#0f172a';
+                ctx.fill();
+                return;
+            }
+
+            const arc = (Math.PI * 2) / activeSet.length;
+
+            // 1. Dibujar Sectores y Textos
+            for (let i = 0; i < activeSet.length; i++) {
+                const angle = currentRotation + i * arc;
+                
+                // Sector
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, radius, angle, angle + arc);
+                ctx.fillStyle = activeSet[i].color;
+                ctx.fill();
+                
+                // Separador
+                ctx.strokeStyle = '#01050b';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+
+                // Texto
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(angle + arc / 2);
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                // Texto oscuro audaz para contraste
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.9)'; 
+                
+                // Adaptar tamaño de fuente levemente basado en cantidad de alumnos
+                let fontSize = activeSet.length > 15 ? 24 : 32;
+                ctx.font = `900 ${fontSize}px "Inter"`;
+                ctx.shadowColor = 'rgba(255,255,255,0.4)';
+                ctx.shadowBlur = 4;
+                
+                // Margen derecho
+                ctx.fillText(activeSet[i].name, radius - 45, 0);
+                ctx.restore();
+            }
+
+            // 2. Efecto 3D Overlay (Convexidad Esférica y Brillo)
+            const highlightGradient = ctx.createRadialGradient(
+                cx * 0.65, cy * 0.65, 0, 
+                cx, cy, radius         
+            );
+            highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)'); // Brillo principal
+            highlightGradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.0)');  
+            highlightGradient.addColorStop(0.85, 'rgba(0, 0, 0, 0.35)');     
+            highlightGradient.addColorStop(1, 'rgba(0, 0, 0, 0.8)');       // Sombra en borde
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+            ctx.fillStyle = highlightGradient;
+            ctx.fill();
+
+            // Detección de colisión de la aguja
+            const pointerAngle = (Math.PI * 1.5 - currentRotation) % (Math.PI * 2);
+            const normPointerAngle = pointerAngle >= 0 ? pointerAngle : (Math.PI * 2 + pointerAngle);
+            const currentSector = Math.floor(normPointerAngle / arc);
+
+            if (currentSector !== lastTickSector && isSpinning) {
+                lastTickSector = currentSector;
+                AudioEngine.playTick();
+                
+                pointerEl.classList.add('pointer-tick');
+                setTimeout(() => pointerEl.classList.remove('pointer-tick'), 50);
+            }
+        }
+
+        // --- 5. FÍSICA DE GIRO (Exactamente 8 segundos) ---
+        function easeOutQuart(t) {
+            return 1 - Math.pow(1 - t, 4);
+        }
+
+        let spinStartTime;
+        const EXACT_SPIN_TIME = 8000; // 8 segundos
+        let startRotation = 0;
+        let targetRotation = 0;
+
+        function animateWheel(timestamp) {
+            if (!spinStartTime) spinStartTime = timestamp;
+            const elapsed = timestamp - spinStartTime;
+            let progress = Math.min(elapsed / EXACT_SPIN_TIME, 1);
+            
+            const easeProgress = easeOutQuart(progress);
+            currentRotation = startRotation + (targetRotation - startRotation) * easeProgress;
+            
+            drawWheel();
+
+            if (progress < 1) {
+                requestAnimationFrame(animateWheel);
+            } else {
+                finishSpin();
+            }
+        }
+
+        spinBtn.addEventListener('click', () => {
+            if (isSpinning || getActiveStudents().length === 0) return;
+            
+            AudioEngine.init();
+            isSpinning = true;
+            spinBtn.disabled = true;
+            spinBtnText.textContent = "GIRANDO...";
+
+            startRotation = currentRotation;
+            // Unas 12-16 vueltas + offset
+            const baseSpins = Math.PI * 2 * (12 + Math.random() * 4); 
+            const randomOffset = Math.random() * Math.PI * 2;
+            targetRotation = startRotation + baseSpins + randomOffset;
+            spinStartTime = null;
+
+            requestAnimationFrame(animateWheel);
+        });
+
+        function finishSpin() {
+            isSpinning = false;
+            spinBtn.disabled = false;
+            spinBtnText.textContent = "GIRAR RULETA";
+            
+            const activeSet = getActiveStudents();
+            const arc = (Math.PI * 2) / activeSet.length;
+            const pointerAngle = (Math.PI * 1.5 - currentRotation) % (Math.PI * 2);
+            const normPointerAngle = pointerAngle >= 0 ? pointerAngle : (Math.PI * 2 + pointerAngle);
+            
+            const winningIndex = Math.floor(normPointerAngle / arc);
+            selectedStudent = activeSet[winningIndex];
+            
+            showWinnerModal(selectedStudent);
+        }
+
+        // --- 6. MODAL Y FONDO MATEMÁTICO ---
+        const modal = document.getElementById('winnerModal');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const mathCanvasEl = document.getElementById('mathCanvas');
+        const modalCard = document.getElementById('modalCard');
+        const winnerText = document.getElementById('winnerText');
+
+        // Partículas del Canvas de Matemáticas
+        const mathCtx = mathCanvasEl.getContext('2d');
+        let mathParticles = [];
+        let mathAnimationId;
+        const MATH_SYMBOLS = ['∑', 'π', '∞', '∫', '√', 'x²', 'Δ', 'θ', 'Ω', '≈', '≠', '≤', '≥', '+', '-', '÷', '×', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
+
+        function initMathCanvas() {
+            mathCanvasEl.width = window.innerWidth;
+            mathCanvasEl.height = window.innerHeight;
+            mathParticles = [];
+            // Crear 120 símbolos matemáticos
+            for(let i=0; i<120; i++) {
+                mathParticles.push({
+                    text: MATH_SYMBOLS[Math.floor(Math.random() * MATH_SYMBOLS.length)],
+                    x: Math.random() * mathCanvasEl.width,
+                    y: Math.random() * mathCanvasEl.height - mathCanvasEl.height, 
+                    speedY: Math.random() * 2.5 + 1.5,
+                    speedX: (Math.random() - 0.5) * 1.5,
+                    size: Math.random() * 40 + 20,
+                    opacity: Math.random() * 0.6 + 0.2,
+                    color: NEON_PALETTE[Math.floor(Math.random() * NEON_PALETTE.length)]
+                });
+            }
+        }
+
+        function animateMathCanvas() {
+            mathCtx.clearRect(0, 0, mathCanvasEl.width, mathCanvasEl.height);
+            
+            mathParticles.forEach(p => {
+                p.y += p.speedY;
+                p.x += p.speedX;
+                
+                // Reaparecer arriba
+                if (p.y > mathCanvasEl.height + 60) {
+                    p.y = -60;
+                    p.x = Math.random() * mathCanvasEl.width;
+                }
+
+                mathCtx.font = `900 ${p.size}px Inter`;
+                mathCtx.fillStyle = p.color;
+                mathCtx.globalAlpha = p.opacity;
+                mathCtx.shadowColor = p.color;
+                mathCtx.shadowBlur = 15;
+                mathCtx.fillText(p.text, p.x, p.y);
+            });
+            mathCtx.globalAlpha = 1.0;
+            mathCtx.shadowBlur = 0;
+
+            mathAnimationId = requestAnimationFrame(animateMathCanvas);
+        }
+
+        // Mostrar Modal
+        function showWinnerModal(student) {
+            AudioEngine.playWin();
+            
+            // Configurar Modal Info
+            winnerText.textContent = student.name;
+            winnerText.style.color = '#ffffff';
+            winnerText.style.textShadow = `0 0 25px ${student.color}, 0 0 60px ${student.color}`;
+            modalCard.style.borderColor = student.color;
+            modalCard.style.boxShadow = `0 0 120px ${student.color}60, inset 0 0 60px ${student.color}30`;
+
+            // Setup Math Particles
+            initMathCanvas();
+            animateMathCanvas();
+
+            // Mostrar UI
+            modal.classList.remove('hidden');
+            void modal.offsetWidth; // Reflow
+            modalOverlay.classList.remove('opacity-0');
+            mathCanvasEl.classList.remove('opacity-0');
+            modalCard.classList.remove('opacity-0', 'scale-90');
+            modalCard.classList.add('modal-active');
+        }
+
+        // Ocultar Modal
+        function hideModal() {
+            modalOverlay.classList.add('opacity-0');
+            mathCanvasEl.classList.add('opacity-0');
+            modalCard.classList.remove('modal-active');
+            modalCard.classList.add('opacity-0', 'scale-90');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                cancelAnimationFrame(mathAnimationId); 
+            }, 500);
+        }
+
+        // Botón: Ya Participó
+        document.getElementById('markDoneBtn').addEventListener('click', () => {
+            if(selectedStudent) {
+                const s = students.find(x => x.id === selectedStudent.id);
+                if (s) s.active = false;
+                renderList();
+                drawWheel();
+            }
+            hideModal();
+        });
+
+        // Botón: Girar de Nuevo
+        document.getElementById('spinAgainBtn').addEventListener('click', () => {
+            hideModal();
+        });
+
+        // Resize Event para el Canvas Matemático
+        window.addEventListener('resize', () => {
+            if(!modal.classList.contains('hidden')) {
+                mathCanvasEl.width = window.innerWidth;
+                mathCanvasEl.height = window.innerHeight;
+            }
+        });
+
+        // Iniciar app
+        renderList();
+        drawWheel();
+
+    </script>
+
+    <!-- Definición de animación shimmer (brillo en modal) -->
+    <style>
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+    </style>
+</body>
+</html>
